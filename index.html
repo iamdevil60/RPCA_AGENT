@@ -263,6 +263,16 @@
     hideError('step1-error');
     showStep('step1');
   }
+
+  // ── อ่าน UID จาก URL อัตโนมัติ (?uid=Uxxxx) ──
+  window.addEventListener('DOMContentLoaded', () => {
+    const params = new URLSearchParams(window.location.search);
+    const urlUid = params.get('uid');
+    if (urlUid && urlUid.startsWith('U')) {
+      document.getElementById('uid-input').value = urlUid;
+      checkUID();  // โหลดข้อมูลทันที ข้ามขั้นตอนกรอก UID
+    }
+  });
 </script>
 </body>
 </html>
