@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>แก้ไขข้อมูลสมาชิก RPCA60</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Sarabun', sans-serif;
+      background: #f0f4f8;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .card {
+      background: white;
+      border-radius: 16px;
+      padding: 28px 24px;
+      width: 100%;
+      max-width: 420px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+    }
+    .header {
+      text-align: center;
+      margin-bottom: 24px;
+    }
+    .header h1 {
+      font-size: 20px;
+      color: #1E3A5F;
+      font-weight: 700;
+    }
+    .header p {
+      font-size: 13px;
+      color: #888;
+      margin-top: 4px;
+    }
+    .section-title {
+      font-size: 13px;
+      color: #1E3A5F;
+      font-weight: 600;
+      margin: 16px 0 8px;
+      padding-left: 4px;
+    }
+    label {
+      display: block;
+      font-size: 13px;
+      color: #555;
+      margin-bottom: 4px;
+      margin-top: 12px;
+    }
+    input {
+      width: 100%;
+      padding: 10px 14px;
+      border: 1.5px solid #ddd;
+      border-radius: 8px;
+      font-size: 15px;
+      color: #333;
+      transition: border 0.2s;
+    }
+    input:focus {
+      outline: none;
+      border-color: #1E3A5F;
+    }
+    input:disabled {
+      background: #f5f5f5;
+      color: #999;
+    }
+    .btn {
+      width: 100%;
+      padding: 12px;
+      border: none;
+      border-radius: 10px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      margin-top: 16px;
+      transition: opacity 0.2s;
+    }
+    .btn:hover { opacity: 0.85; }
+    .btn-primary { background: #1E3A5F; color: white; }
+    .btn-success { background: #2C7A4B; color: white; }
+    .btn-secondary { background: #eee; color: #555; }
+    .alert {
+      padding: 12px 14px;
+      border-radius: 8px;
+      font-size: 14px;
+      margin-top: 12px;
+      display: none;
+    }
+    .alert-error { background: #fff0f0; color: #c0392b; border: 1px solid #f5c6cb; }
+    .alert-success { background: #f0fff4; color: #27ae60; border: 1px solid #c3e6cb; }
+    .alert-info { background: #f0f4ff; color: #1E3A5F; border: 1px solid #c5d4f0; }
+    .divider { border: none; border-top: 1px solid #eee; margin: 20px 0; }
+    .step { display: none; }
+    .step.active { display: block; }
+    .loading { text-align: center; color: #888; font-size: 14px; padding: 20px 0; }
+    .name-display {
+      background: #f0f4ff;
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-size: 14px;
+      color: #1E3A5F;
+      font-weight: 600;
+      margin-top: 4px;
+    }
+  </style>
+</head>
+<body>
+<div class="card">
+  <div class="header">
+    <h1>🎓 แก้ไขข้อมูลสมาชิก</h1>
+    <p>RPCA นักเรียนนายร้อยตำรวจ</p>
+  </div>
+
+  <!-- Step 1: กรอก UID -->
+  <div class="step active" id="step1">
+    <label>LINE User ID (UID) ของคุณ</label>
+    <input type="text" id="uid-input" placeholder="Uxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx">
+    <div class="alert alert-info" id="uid-hint" style="display:block; margin-top:8px;">
+      💡 วิธีดู UID: พิมพ์ <strong>#uid</strong> ในกลุ่ม LINE แล้วบอทจะส่ง UID ให้
+    </div>
+    <div class="alert alert-error" id="step1-error"></div>
+    <button class="btn btn-primary" onclick="checkUID()">ค้นหาข้อมูล</button>
+  </div>
+
+  <!-- Step 2: แสดงและแก้ไขข้อมูล -->
+  <div class="step" id="step2">
+    <div class="section-title">📋 ข้อมูลปัจจุบัน</div>
+    <label>ชื่อ-นามสกุล (แก้ไขไม่ได้)</label>
+    <div class="name-display" id="display-name">—</div>
+
+    <hr class="divider">
+    <div class="section-title">✏️ ข้อมูลที่แก้ไขได้</div>
+
+    <label>เบอร์โทรหลัก</label>
+    <input type="tel" id="phone" placeholder="0812345678" maxlength="10">
+
+    <label>เบอร์โทรสำรอง</label>
+    <input type="tel" id="phone2" placeholder="0812345678" maxlength="10">
+
+    <label>Line ID</label>
+    <input type="text" id="lineid" placeholder="@lineid">
+
+    <div class="alert alert-error" id="step2-error"></div>
+    <div class="alert alert-success" id="step2-success"></div>
+
+    <button class="btn btn-success" onclick="submitUpdate()">💾 บันทึกข้อมูล</button>
+    <button class="btn btn-secondary" onclick="resetForm()" style="margin-top:8px;">← กลับ</button>
+  </div>
+
+  <!-- Loading -->
+  <div class="step" id="step-loading">
+    <div class="loading">⏳ กำลังโหลด...</div>
+  </div>
+</div>
+
+<script>
+  // ══════════════════════════════════════
+  // CONFIG — เปลี่ยน URL เมื่อสร้าง webhook แล้ว
+  // ══════════════════════════════════════
+  const GET_URL    = 'https://iamdevil60.app.n8n.cloud/webhook/get-member';
+  const UPDATE_URL = 'https://iamdevil60.app.n8n.cloud/webhook/update-member';
+
+  let currentUID = '';
+  let currentRowIndex = '';
+
+  function showStep(id) {
+    document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+  }
+
+  function showError(id, msg) {
+    const el = document.getElementById(id);
+    el.textContent = msg;
+    el.style.display = 'block';
+  }
+
+  function hideError(id) {
+    document.getElementById(id).style.display = 'none';
+  }
+
+  async function checkUID() {
+    const uid = document.getElementById('uid-input').value.trim();
+    hideError('step1-error');
+
+    if (!uid.startsWith('U') || uid.length < 20) {
+      showError('step1-error', '❌ UID ไม่ถูกต้อง ต้องขึ้นต้นด้วย U และมีความยาว 20+ ตัวอักษร');
+      return;
+    }
+
+    showStep('step-loading');
+    try {
+      const res = await fetch(`${GET_URL}?uid=${encodeURIComponent(uid)}`);
+      const data = await res.json();
+
+      if (!data.found) {
+        showStep('step1');
+        showError('step1-error', data.message || '❌ ไม่พบ UID นี้ในระบบ กรุณาลงทะเบียนก่อน');
+        return;
+      }
+
+      currentUID = uid;
+      currentRowIndex = data.rowIndex;
+
+      document.getElementById('display-name').textContent = data.name || '—';
+      document.getElementById('phone').value  = data.phone  || '';
+      document.getElementById('phone2').value = data.phone2 || '';
+      document.getElementById('lineid').value = data.lineId || '';
+
+      showStep('step2');
+    } catch(e) {
+      showStep('step1');
+      showError('step1-error', '❌ ไม่สามารถเชื่อมต่อได้ กรุณาลองใหม่');
+    }
+  }
+
+  async function submitUpdate() {
+    hideError('step2-error');
+    document.getElementById('step2-success').style.display = 'none';
+
+    const phone  = document.getElementById('phone').value.trim();
+    const phone2 = document.getElementById('phone2').value.trim();
+    const lineId = document.getElementById('lineid').value.trim();
+
+    if (phone && !/^0\d{8,9}$/.test(phone)) {
+      showError('step2-error', '❌ เบอร์โทรหลักไม่ถูกต้อง (ต้องขึ้นต้นด้วย 0 และ 9-10 หลัก)');
+      return;
+    }
+    if (phone2 && !/^0\d{8,9}$/.test(phone2)) {
+      showError('step2-error', '❌ เบอร์โทรสำรองไม่ถูกต้อง (ต้องขึ้นต้นด้วย 0 และ 9-10 หลัก)');
+      return;
+    }
+
+    try {
+      const res = await fetch(UPDATE_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          uid: currentUID,
+          rowIndex: currentRowIndex,
+          phone, phone2, lineId
+        })
+      });
+      const data = await res.json();
+
+      if (data.success) {
+        const el = document.getElementById('step2-success');
+        el.textContent = '✅ บันทึกข้อมูลสำเร็จ!';
+        el.style.display = 'block';
+      } else {
+        showError('step2-error', data.message || '❌ บันทึกไม่สำเร็จ');
+      }
+    } catch(e) {
+      showError('step2-error', '❌ ไม่สามารถเชื่อมต่อได้ กรุณาลองใหม่');
+    }
+  }
+
+  function resetForm() {
+    document.getElementById('uid-input').value = '';
+    hideError('step1-error');
+    showStep('step1');
+  }
+</script>
+</body>
+</html>
